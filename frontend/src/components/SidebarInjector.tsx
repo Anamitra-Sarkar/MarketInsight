@@ -21,97 +21,117 @@ const SidebarInjector: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { currentUser } = useAuth();
   const rootRef = useRef<Root | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    let isInjected = false;
-    let retryCount = 0;
-    const maxRetries = 10;
+    let attempts = 0;
+    const maxAttempts = 20;
+    let injectionInterval: number;
 
     const injectAuthUI = () => {
-      if (isInjected || retryCount >= maxRetries) return;
-      retryCount++;
+      if (attempts >= maxAttempts) {
+        clearInterval(injectionInterval);
+        return;
+      }
+      
+      attempts++;
 
-      // Look for the sidebar in C1Chat
-      const selectors = [
-        '[class*="sidebar"]',
-        '[class*="Sidebar"]',
-        '[class*="drawer"]',
-        '[class*="Drawer"]',
-        'aside',
-        'nav'
-      ];
-
-      let sidebar: HTMLElement | null = null;
-
-      for (const selector of selectors) {
-        const elements = document.querySelectorAll(selector);
-        for (const element of elements) {
-          const el = element as HTMLElement;
-          const computedStyle = window.getComputedStyle(el);
-          
-          // Check if this looks like a sidebar
-          if (el.offsetHeight > 200 && 
-              (computedStyle.position === 'fixed' || 
-               computedStyle.position === 'absolute' ||
-               el.offsetWidth < 500)) {
-            sidebar = el;
-            break;
-          }
-        }
-        if (sidebar) break;
+      // Skip if already injected
+      if (containerRef.current && document.body.contains(containerRef.current)) {
+        clearInterval(injectionInterval);
+        return;
       }
 
-      if (sidebar && !document.getElementById('custom-sidebar-auth')) {
-        // Create container for our custom UI
-        const container = document.createElement('div');
-        container.id = 'custom-sidebar-auth';
-        container.className = 'custom-sidebar-auth';
-        
-        // Insert at the beginning of sidebar
-        if (sidebar.firstChild) {
-          sidebar.insertBefore(container, sidebar.firstChild);
-        } else {
-          sidebar.appendChild(container);
-        }
+      // Look for various sidebar elements used by chat UIs
+      const possibleSelectors = [
+        // Look for common sidebar patterns
+        '[class*="sidebar" i]',
+        '[class*="drawer" i]',
+        '[class*="menu" i]',
+        '[class*="nav" i]',
+        'aside',
+        'nav[role="navigation"]',
+        // Look for C1Chat specific patterns
+        '[class*="chat"][class*="sidebar" i]',
+        '[class*="c1"][class*="sidebar" i]',
+      ];
 
-        // Render React component into the container
-        if (!rootRef.current) {
-          rootRef.current = createRoot(container);
-        }
-        
-        rootRef.current.render(
-          <SidebarContent 
-            onLoginClick={() => setShowAuthModal(true)} 
-            currentUser={currentUser}
-          />
-        );
+      for (const selector of possibleSelectors) {
+        try {
+          const elements = document.querySelectorAll(selector);
+          
+          for (const element of Array.from(elements)) {
+            const el = element as HTMLElement;
+            
+            // Skip if already has our custom auth
+            if (el.querySelector('#custom-sidebar-auth')) {
+              continue;
+            }
 
-        isInjected = true;
+            // Check if this looks like a sidebar
+            const rect = el.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(el);
+            
+            const isSidebarLike = (
+              // Has reasonable dimensions
+              (rect.width > 150 && rect.width < 600 && rect.height > 300) ||
+              // Or is positioned like a sidebar
+              (computedStyle.position === 'fixed' || computedStyle.position === 'absolute') ||
+              // Or has typical sidebar styling
+              (el.offsetHeight > 400)
+            );
+
+            if (isSidebarLike) {
+              // Create container for our custom UI
+              const container = document.createElement('div');
+              container.id = 'custom-sidebar-auth';
+              container.className = 'custom-sidebar-auth';
+              
+              // Insert at the beginning of sidebar
+              if (el.firstChild) {
+                el.insertBefore(container, el.firstChild);
+              } else {
+                el.appendChild(container);
+              }
+
+              containerRef.current = container;
+
+              // Render React component into the container
+              if (!rootRef.current) {
+                rootRef.current = createRoot(container);
+              }
+              
+              rootRef.current.render(
+                <SidebarContent 
+                  onLoginClick={() => setShowAuthModal(true)} 
+                  currentUser={currentUser}
+                />
+              );
+
+              clearInterval(injectionInterval);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error injecting auth UI:', error);
+        }
       }
     };
 
-    // Try multiple times with delays
-    const timeouts = [500, 1000, 1500, 2000, 3000, 4000, 5000].map(delay => 
-      setTimeout(injectAuthUI, delay)
-    );
-
-    // Also watch for DOM changes
-    const observer = new MutationObserver(() => {
-      if (!isInjected) {
-        injectAuthUI();
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    // Try to inject every 250ms for up to 5 seconds
+    injectionInterval = setInterval(injectAuthUI, 250);
+    
+    // Also try immediately
+    injectAuthUI();
 
     return () => {
-      timeouts.forEach(timeout => clearTimeout(timeout));
-      observer.disconnect();
-      if (rootRef.current) {
-        rootRef.current.unmount();
+      clearInterval(injectionInterval);
+      if (rootRef.current && containerRef.current) {
+        try {
+          rootRef.current.unmount();
+        } catch (error) {
+          console.error('Error unmounting auth UI:', error);
+        }
         rootRef.current = null;
       }
     };
