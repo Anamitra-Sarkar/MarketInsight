@@ -12,6 +12,7 @@
   "dependencies": {
     "@crayonai/react-ui": "^0.9.7",
     "@thesysai/genui-sdk": "^0.7.7",
+    "firebase": "^12.8.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

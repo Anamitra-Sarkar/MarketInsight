@@ -1,0 +1,20 @@
+/* Custom Sidebar Auth Container */
+.custom-sidebar-auth {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.18));
+  background: var(--bg-primary, rgba(10, 10, 15, 0.98));
+}
+
+.sidebar-auth-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .custom-sidebar-auth {
+    padding: 0.875rem;
+  }
+}
