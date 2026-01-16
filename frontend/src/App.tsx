@@ -2,6 +2,8 @@ import './App.css'
 import { C1Chat, ThemeProvider } from '@thesysai/genui-sdk'
 import '@crayonai/react-ui/styles/index.css'
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { AuthProvider } from './contexts/AuthContext'
+import SidebarInjector from './components/SidebarInjector'
 
 // Recommendation data
 const RECOMMENDATIONS = [
@@ -266,16 +268,19 @@ function App() {
   }, [showRecommendations, hasMessages, handleRecommendationClick])
 
   return (
-    <div className="app-container" ref={chatContainerRef}>
-      <ThemeProvider mode="dark">
-        <C1Chat
-          apiUrl="https://marketinsight-skgl.onrender.com/api/chat"
-          agentName="Market Insight"
-          logoUrl="/icon.png"
-          formFactor="full-page"
-        />
-      </ThemeProvider>
-    </div>
+    <AuthProvider>
+      <div className="app-container" ref={chatContainerRef}>
+        <ThemeProvider mode="dark">
+          <C1Chat
+            apiUrl="https://marketinsight-skgl.onrender.com/api/chat"
+            agentName="Market Insight"
+            logoUrl="/icon.png"
+            formFactor="full-page"
+          />
+          <SidebarInjector />
+        </ThemeProvider>
+      </div>
+    </AuthProvider>
   )
 }
 
