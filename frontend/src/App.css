@@ -3,10 +3,12 @@
   --bg-primary: rgba(10, 10, 15, 0.98);
   --bg-secondary: rgba(20, 20, 30, 0.95);
   --bg-hover: rgba(30, 30, 45, 0.98);
-  --border-color: rgba(255, 255, 255, 0.15);
-  --border-hover: rgba(255, 255, 255, 0.25);
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(255, 255, 255, 0.18);
+  --border-hover: rgba(255, 255, 255, 0.28);
+  --text-primary: rgba(255, 255, 255, 0.96);
+  --text-secondary: rgba(255, 255, 255, 0.9);
+  /* Accent color as RGB so we can reuse with alpha */
+  --accent-rgb: 99,102,241;
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.4);
@@ -120,7 +122,7 @@ body {
 
 /* Focus state for accessibility */
 .recommendation-box:focus {
-  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline: 2px solid rgba(var(--accent-rgb), 0.5);
   outline-offset: 2px;
 }
 
@@ -146,7 +148,7 @@ body {
   line-height: 1.4;
   flex: 1;
   transition: color 0.3s ease;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .recommendation-box:hover .recommendation-text {
@@ -194,4 +196,39 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Alternate theme palettes (apply to `body` or `#root` as a class)
+   Example: <body class="theme-summer"> or document.documentElement.classList.add('theme-slate') */
+.theme-slate {
+  --bg-primary: #0b1220;
+  --bg-secondary: #0f1724;
+  --bg-hover: #172033;
+  --border-color: rgba(255,255,255,0.12);
+  --border-hover: rgba(255,255,255,0.22);
+  --text-primary: rgba(255,255,255,0.98);
+  --text-secondary: rgba(255,255,255,0.9);
+  --accent-rgb: 56,189,248; /* sky */
+}
+
+.theme-summer {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-hover: #f1f5f9;
+  --border-color: rgba(2,6,23,0.06);
+  --border-hover: rgba(2,6,23,0.08);
+  --text-primary: rgba(2,6,23,0.95);
+  --text-secondary: rgba(2,6,23,0.65);
+  --accent-rgb: 234,88,12; /* warm accent */
+}
+
+.theme-calm {
+  --bg-primary: #071726;
+  --bg-secondary: rgba(6, 18, 45, 0.9);
+  --bg-hover: rgba(8, 25, 60, 0.95);
+  --border-color: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.16);
+  --text-primary: rgba(255,255,255,0.96);
+  --text-secondary: rgba(255,255,255,0.88);
+  --accent-rgb: 96,165,250; /* calm blue */
 }
